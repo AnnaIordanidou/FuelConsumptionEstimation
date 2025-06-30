@@ -1,9 +1,12 @@
-# FuelConsumptionEstimation
-Here you can find my thesis for the postgraduate program of the Department of Computer Engineering and Informatics
+# Fuel consumption estimation in automotive vehicles using OBD-II data processing
+This project constitutes the master's thesis for the postgraduate program of the Department of Computer Engineering and Informatics.
+
+
 
 ## Abstract 
 
 This project investigates fuel consumption estimation using vehicle diagnostic system data, focusing on driving behavior. Two models were developed: an instantaneous and a weighted model. The data was cleaned and transformed, enriched with new variables like acceleration and fuel consumption, and subjected to feature analysis using the Random Forest algorithm. Drivers were grouped based on behavior variables, and three profiles were created: Aggressive, Normal, and Slow/Eco. The study found that drivers from the Aggresive group tend to have higher fuel consumption values. The instantaneous model used regression algorithms like Random Forest, SVM, and Linear Regression, with Random Forest excelling in accuracy and generalizability. The weighted model calculated fuel consumption per driver, combining the percentage of participation in each behavior with average consumption observed in each category. The models showed encouraging performance during training, but no model achieved satisfactory levels of prediction accuracy.
+
 
 ## Data Cleaning and missing values
 In the first step, we clean the data by removing the empty columns and also values where the engine runtime is zero and speed is also zero. We do this as we want the vehicle to be active so we can calculate its consumption. We also remove the values where speed and RPM are zero at the same time, cause when the car is idling, that is, when it is not moving but the engine is still running, the RPM value typically ranges between 600 to 900 RPM. This can happen when the vehicle is at a stoplight, stopped in traffic, at a crosswalk, or has just parked, but the engine has not yet been turned off. As the data comes from a real-time sensor, there is a possibility that some of it is incorrect. This can happen either due to a lag or error of OBD, or because the vehicle has a start-stop system. In the characteristics of the experimental car, there is no mention of such a system, so it is an OBD problem, so we remove this data. We will remove the lines where the speed and the RPM are zero.  <br/>
@@ -296,6 +299,13 @@ $`\text{Fuel Consumption}_{\text{MAF}}`$  |  $`\text{Fuel Consumption}_{\text{RP
 
 
 ### Fuel Consumption Prediction Using Driving Behavior Profiles
+
+To better assess the impact of driving behavior on overall fuel consumption, a weighted model was developed. Instead of analyzing each trip or segment separately, this approach calculates a single, aggregated fuel consumption score per driver, taking into account how often they exhibit aggressive, normal, or economical driving patterns.
+
+Each driver's fuel consumption is weighted by the proportion of time they spend in each behavior cluster. This provides a more holistic view of their long-term driving habits and allows us to explore whether it's possible to predict their overall consumption based solely on their behavior profile.
+
+The goal of this model is not just prediction accuracy, but to explore how well behavioral patterns alone can explain real-world fuel usage trends. 
+
 For the second method, we calculated the weighted fule consumption to use it as a target for our model, according to this formula:
 ```math
 \text{Weighted Fuel Consumption} = p_1 * FL_{Aggressive} + p_2*FL_{Normal} + p_3*FL_{Slow/Eco}
@@ -347,6 +357,34 @@ for target in targets:
         train_r2 = r2_score(y_train, y_train_pred)
         test_r2 = r2_score(y_test, y_test_pred)
 ```
+
+Initially, the Random Forest model showed significant differences between the two cases. In the case of FL MAF weighted, despite the high performance in training with R² of about 0.87, the model suffered from overfitting, with the R² in the test falling negatively (-2.92). This is probably due to the small size of the data and the complexity of the relationship between driving behavior and fuel consumption. Although the predictions were not accurate in this case, the model showed a more consistent performance for FL RPM weighted, with R² of about 0.93 in both training and testing, indicating that it was able to explain more than 90% of the variance of the target variable. However, a tendency to underestimate high consumption values ​​was observed for some drivers, without this significantly affecting the overall accuracy.
+
+
+$`\text{Fuel Consumption}_{\text{MAF}}`$          |  $`\text{Fuel Consumption}_{\text{RPM}}`$
+:-------------------------:|:-------------------------:
+![mafwrandom](https://github.com/user-attachments/assets/40374cbd-c6f8-4275-b2b9-148d3c0a4109) | ![rpmwrandom](https://github.com/user-attachments/assets/b77b2945-3f70-49ab-bf80-dd1c74f6aa0e)
+
+
+
+The Linear Regression model consistently performed poorly in both cases. In FL MAF weighted, training performed moderately (R² around 0.5), but test performance was very poor with a negative R² (-4.18). The model had a systematic tendency to overestimate fuel consumption, especially for drivers with low actual values. In FL RPM weighted, although the training model scored a satisfactory R² (0.807), test performance was poor, with underestimation of large values ​​and a tendency to compress predictions towards the mean. This suggests that the linear model is unable to capture the nonlinear relationships and complexity of the data.
+
+
+
+
+
+$`\text{Fuel Consumption}_{\text{MAF}}`$          |  $`\text{Fuel Consumption}_{\text{RPM}}`$
+:-------------------------:|:-------------------------:
+![mafwlinear](https://github.com/user-attachments/assets/cea83acf-4d62-4f62-a5ef-7abf62fe217c) | ![rpmwlinear](https://github.com/user-attachments/assets/c6602ad0-86a7-4ed7-b104-fe7995a68103)
+
+
+The Support Vector Regression (SVR) model performed the worst in both cases. For FL MAF weighted, the R² was -0.09, while for FL RPM weighted it was even lower (-0.247). Despite attempts to optimize the hyperparameters (C=100, epsilon=0.1, gamma=’scale’, kernel=’rbf’), the model failed to capture the variability of the data, presenting predictions clustered around a fixed mean value. This led to an underestimation of the extreme values, i.e. high fuel consumption, which reduces its effectiveness in cases with high heterogeneity in the data.
+
+$`\text{Fuel Consumption}_{\text{MAF}}`$          |  $`\text{Fuel Consumption}_{\text{RPM}}`$
+:-------------------------:|:-------------------------:
+![mafwsvr](https://github.com/user-attachments/assets/91ef7fcb-0756-429a-88f3-2424a94252fc) | ![rpmwsvr](https://github.com/user-attachments/assets/0f881a68-238c-47ca-9022-d9b8f343a41a)
+
+
 
 
 
