@@ -1,5 +1,6 @@
 # Fuel consumption estimation in automotive vehicles using OBD-II data processing
 This project constitutes the master's thesis for the postgraduate program of the Department of Computer Engineering and Informatics.
+You can read my thesis here: https://hdl.handle.net/10889/30005
 
 
 
